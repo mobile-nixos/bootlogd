@@ -112,14 +112,17 @@ int findpty(int *master, int *slave, char *name)
 	int i, j;
 	int found;
 
-	if (openpty(master, slave, name, NULL, NULL) >= 0)
+	if (openpty(master, slave, name, NULL, NULL) >= 0) {
 		return 0;
+	}
 
 	found = 0;
 
 	for (i = 'p'; i <= 'z'; i++) {
 		for (j = '0'; j <= 'f'; j++) {
-			if (j == '9' + 1) j = 'a';
+			if (j == '9' + 1) {
+				j = 'a';
+			}
 			sprintf(pty, "/dev/pty%c%c", i, j);
 			sprintf(tty, "/dev/tty%c%c", i, j);
 			if ((*master = open(pty, O_RDWR|O_NOCTTY)) >= 0) {
@@ -130,11 +133,17 @@ int findpty(int *master, int *slave, char *name)
 				}
 			}
 		}
-		if (found) break;
+		if (found) {
+			break;
+		}
 	}
-	if (!found) return -1;
+	if (!found) {
+		return -1;
+	}
 
-	if (name) strcpy(name, tty);
+	if (name) {
+		strcpy(name, tty);
+	}
 
 	return 0;
 }
@@ -152,13 +161,18 @@ int isconsole(char *s, char *res, int rlen)
 
 	for (c = consdev; c->cmdline; c++) {
 		l = strlen(c->cmdline);
-		if (sl <= l) continue;
-		p = s + l;
-		if (strncmp(s, c->cmdline, l) != 0 || !isdigit(*p))
+		if (sl <= l) {
 			continue;
+		}
+		p = s + l;
+		if (strncmp(s, c->cmdline, l) != 0 || !isdigit(*p)) {
+			continue;
+		}
 		for (i = 0; i < 2; i++) {
 			snprintf(res, rlen, i ? c->dev1 : c->dev2, p);
-			if ((q = strchr(res, ',')) != NULL) *q = 0;
+			if ((q = strchr(res, ',')) != NULL) {
+				*q = 0;
+			}
 			if ((fd = open(res, O_RDONLY|O_NONBLOCK)) >= 0) {
 				close(fd);
 				return 1;
@@ -203,13 +217,18 @@ int consolenames(struct real_cons *cons, int max_consoles)
 		perror("bootlogd: /proc/cmdline");
 	} else {
 		buf[0] = 0;
-		if ((n = read(fd, buf, KERNEL_COMMAND_LENGTH - 1)) < 0)
+		if ((n = read(fd, buf, KERNEL_COMMAND_LENGTH - 1)) < 0) {
 			perror("bootlogd: /proc/cmdline");
+		}
 		close(fd);
 	}
-	if (didmount) umount("/proc");
+	if (didmount) {
+		umount("/proc");
+	}
 
-	if (n < 0) return 0;
+	if (n < 0) {
+		return 0;
+	}
 
 	/*
 	 * OK, so find console= in /proc/cmdline.
@@ -243,15 +262,19 @@ dontuse:
 		p--;
 	}
 
-	if (num_consoles > 0) return num_consoles;
+	if (num_consoles > 0) {
+		return num_consoles;
+	}
 
 	/*
 	 * Okay, no console on the command line -
 	 * guess the default console.
 	 */
-	for (n = 0; defcons[n]; n++)
-		if (isconsole(defcons[n], cons[0].name, sizeof(cons[0].name)))
+	for (n = 0; defcons[n]; n++) {
+		if (isconsole(defcons[n], cons[0].name, sizeof(cons[0].name))) {
 			return 1;
+		}
+	}
 
 	fprintf(stderr, "bootlogd: cannot deduce real console device\n");
 
@@ -341,9 +364,9 @@ void writelog(FILE *fp, unsigned char *ptr, int len)
 	}
 
 	outptr += len;
-	if (outptr >= endptr)
+	if (outptr >= endptr) {
 		outptr = ringbuf;
-
+	}
 }
 
 
@@ -360,8 +383,9 @@ int open_nb(char *buf)
 {
 	int fd, n;
 
-	if ((fd = open(buf, O_WRONLY|O_NONBLOCK|O_NOCTTY)) < 0)
+	if ((fd = open(buf, O_WRONLY|O_NONBLOCK|O_NOCTTY)) < 0) {
 		return -1;
+	}
 	n = fcntl(fd, F_GETFL);
 	n &= ~(O_NONBLOCK);
 	fcntl(fd, F_SETFL, n);
@@ -384,8 +408,9 @@ werr:
 		return -1;
 	}
 	close(realfd);
-	if ((fd = open_nb(realcons)) < 0)
+	if ((fd = open_nb(realcons)) < 0) {
 		goto werr;
+	}
 
 	return fd;
 }
@@ -431,7 +456,9 @@ int main(int argc, char **argv)
 			usage();
 			break;
 	}
-	if (optind < argc) usage();
+	if (optind < argc) {
+		usage();
+	}
 
 	signal(SIGTERM, handler);
 	signal(SIGQUIT, handler);
@@ -440,14 +467,17 @@ int main(int argc, char **argv)
 	signal(SIGTTOU,  SIG_IGN);
 	signal(SIGTSTP,  SIG_IGN);
 
-	if ((num_consoles = consolenames(cons, MAX_CONSOLES)) <= 0)
+	if ((num_consoles = consolenames(cons, MAX_CONSOLES)) <= 0) {
 		return 1;
+	}
 	consoles_left = num_consoles;
 	for (considx = 0; considx < num_consoles; considx++) {
-		if (strcmp(cons[considx].name, "/dev/tty0") == 0)
+		if (strcmp(cons[considx].name, "/dev/tty0") == 0) {
 			strcpy(cons[considx].name, "/dev/tty1");
-		if (strcmp(cons[considx].name, "/dev/vc/0") == 0)
+		}
+		if (strcmp(cons[considx].name, "/dev/vc/0") == 0) {
 			strcpy(cons[considx].name, "/dev/vc/1");
+		}
 
 		if ((cons[considx].fd = open_nb(cons[considx].name)) < 0) {
 			fprintf(stderr, "bootlogd: %s: %s\n",
@@ -455,9 +485,9 @@ int main(int argc, char **argv)
 			consoles_left--;
 		}
 	}
-	if (!consoles_left)
+	if (!consoles_left) {
 		return 1;
-
+	}
 
 	/*
 	 * Grab a pty, and redirect console messages to it.
@@ -507,7 +537,9 @@ int main(int argc, char **argv)
 				 * to the real output devices.
 				 */
 				for (considx = 0; considx < num_consoles; considx++) {
-					if (cons[considx].fd < 0) continue;
+					if (cons[considx].fd < 0) {
+						continue;
+					}
 					m = n;
 					p = inptr;
 					while (m > 0) {
@@ -522,12 +554,16 @@ int main(int argc, char **argv)
 						 * up our filedescriptor)
 						 */
 						cons[considx].fd = write_err(pts, cons[considx].fd, cons[considx].name, errno);
-						if (cons[considx].fd >= 0) continue;
+						if (cons[considx].fd >= 0) {
+							continue;
+						}
 						/*
 						 * If this was the last console,
 						 * generate a fake signal
 						 */
-						if (--consoles_left <= 0) got_signal = 1;
+						if (--consoles_left <= 0) {
+							got_signal = 1;
+						}
 						break;
 					}
 				}
@@ -538,12 +574,15 @@ int main(int argc, char **argv)
 				 * along if we cross it.
 				 */
 				inptr += n;
-				if (inptr - n < outptr && inptr > outptr)
+				if (inptr - n < outptr && inptr > outptr) {
 					outptr = inptr;
-				if (inptr >= endptr)
+				}
+				if (inptr >= endptr) {
 					inptr = ringbuf;
-				if (outptr >= endptr)
+				}
+				if (outptr >= endptr) {
 					outptr = ringbuf;
+				}
 			}
 		}
 
@@ -557,19 +596,25 @@ int main(int argc, char **argv)
 			}
 			fp = fopen(logfile, "a");
 		}
-		if (fp == NULL && createlogfile)
+		if (fp == NULL && createlogfile) {
 			fp = fopen(logfile, "a");
+		}
 
-		if (inptr >= outptr)
+		if (inptr >= outptr) {
 			todo = inptr - outptr;
-		else
+		}
+		else {
 			todo = endptr - outptr;
-		if (fp && todo)
+		}
+		if (fp && todo) {
 			writelog(fp, (unsigned char *)outptr, todo);
+		}
 	}
 
 	if (fp) {
-		if (!didnl) fputc('\n', fp);
+		if (!didnl) {
+			fputc('\n', fp);
+		}
 		fclose(fp);
 	}
 
