@@ -397,7 +397,6 @@ int main(int argc, char **argv)
 	char		*logfile;
 	int		rotate;
 	int		ptm, pts;
-	/* int		realfd;   -- this is now unused */
 	int		n, m, i;
 	int		todo;
 	int		considx;
