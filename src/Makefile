@@ -29,7 +29,7 @@ all:		$(BIN)
 bootlogd:	LDLIBS += -lutil $(STATIC)
 bootlogd:	bootlogd.o
 
-bootlogd.o:	bootlogd.c bootlogd.h
+bootlogd.o:	bootlogd.c
 
 # ----
 

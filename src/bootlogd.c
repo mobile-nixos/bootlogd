@@ -44,7 +44,8 @@
 
 #include <ctype.h>
 #include <sys/mount.h>
-#include "bootlogd.h"
+
+#define LOGFILE "/var/log/boot"
 
 #define MAX_CONSOLES 16
 #define KERNEL_COMMAND_LENGTH 4096
