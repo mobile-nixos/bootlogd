@@ -15,8 +15,16 @@ Sysvinit is Copyright (C) 1991-2004 Miquel van Smoorenburg
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-On Debian GNU/Linux systems, the complete text of the GNU General
-Public License can be found in `/usr/share/common-licenses/GPL-2'.
+* * *
 
-Send patches to sysvinit-devel@nongnu.org
+This is a trimmed down sysvinit repository, keeping only bootlogd as
+the basis of a boot console multiplexer.
 
+ * https://savannah.nongnu.org/projects/sysvinit
+ * http://git.savannah.nongnu.org/cgit/sysvinit.git/
+
+This new bootlogd keeps the previous copyright notices, in addition to:
+
+    Copyright (C) 2020 Samuel Dionne-Riel
+
+For the updates as required by the Mobile NixOS project.
