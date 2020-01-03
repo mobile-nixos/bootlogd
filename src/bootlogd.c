@@ -348,7 +348,7 @@ void writelog(FILE *fp, unsigned char *ptr, int len)
  */
 void usage(void)
 {
-	fprintf(stderr, "Usage: bootlogd [-v] [-r] [-d] [-s] [-c] [-p pidfile] [-l logfile]\n");
+	fprintf(stderr, "Usage: bootlogd [-v] [-r] [-d] [-s] [-c] [-l logfile]\n");
 	exit(1);
 }
 
@@ -395,7 +395,6 @@ int main(int argc, char **argv)
 	char		buf[1024];
 	char		*p;
 	char		*logfile;
-	char		*pidfile;
 	int		rotate;
 	int		dontfork;
 	int		ptm, pts;
@@ -408,7 +407,6 @@ int main(int argc, char **argv)
 
 	fp = NULL;
 	logfile = LOGFILE;
-	pidfile = NULL;
 	rotate = 0;
 	dontfork = 0;
 
@@ -422,9 +420,6 @@ int main(int argc, char **argv)
 		case 'v':
 			printf("bootlogd - %s\n", VERSION);
 			exit(0);
-			break;
-		case 'p':
-			pidfile = optarg;
 			break;
 		case 'c':
 			createlogfile = 1;
@@ -497,7 +492,7 @@ int main(int argc, char **argv)
 	}
 
 	/*
-	 *	Fork and write pidfile if needed.
+	 *	Fork if needed.
 	 */
 	if (!dontfork) {
 		pid_t child_pid = fork();
@@ -514,14 +509,6 @@ int main(int argc, char **argv)
 			break;
 		}
 		setsid();
-	}
-	if (pidfile) {
-		unlink(pidfile);
-		if ((fp = fopen(pidfile, "w")) != NULL) {
-			fprintf(fp, "%d\n", (int)getpid());
-			fclose(fp);
-		}
-		fp = NULL;
 	}
 
 	/*
@@ -625,4 +612,3 @@ int main(int argc, char **argv)
 
 	return 0;
 }
-
