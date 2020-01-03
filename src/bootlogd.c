@@ -219,7 +219,8 @@ int consolenames(struct real_cons *cons, int max_consoles)
 	n = -1;
 	if ((fd = open("/proc/cmdline", O_RDONLY)) < 0) {
 		perror("bootlogd: /proc/cmdline");
-	} else {
+	}
+	else {
 		buf[0] = 0;
 		if ((n = read(fd, buf, KERNEL_COMMAND_LENGTH - 1)) < 0) {
 			perror("bootlogd: /proc/cmdline");
@@ -317,14 +318,16 @@ void writelog(FILE *fp, unsigned char *ptr, int len)
 				/* multi char sequence */
 				ignore = 1;
 				inside_esc = 2;
-			} else {
+			}
+			else {
 				/* single char sequence */
 				if (*ptr >= 64 && *ptr <= 95) {
 					ignore = 1;
 				}
 				inside_esc = 0;
 			}
-		} else if (inside_esc == 2) {
+		}
+		else if (inside_esc == 2) {
 			switch (*ptr) {
 				case '0' ... '9': /* intermediate chars of escape sequence */
 				case ';':
@@ -340,7 +343,8 @@ void writelog(FILE *fp, unsigned char *ptr, int len)
 					}
 					break;
 			}
-		} else {
+		}
+		else {
 			switch (*ptr) {
 				case '\r':
 					ignore = 1;
