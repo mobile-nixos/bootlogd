@@ -348,7 +348,7 @@ void writelog(FILE *fp, unsigned char *ptr, int len)
  */
 void usage(void)
 {
-	fprintf(stderr, "Usage: bootlogd [-v] [-r] [-d] [-s] [-c] [-l logfile]\n");
+	fprintf(stderr, "Usage: bootlogd [-v] [-r] [-s] [-c] [-l logfile]\n");
 	exit(1);
 }
 
@@ -396,7 +396,6 @@ int main(int argc, char **argv)
 	char		*p;
 	char		*logfile;
 	int		rotate;
-	int		dontfork;
 	int		ptm, pts;
 	/* int		realfd;   -- this is now unused */
 	int		n, m, i;
@@ -408,7 +407,6 @@ int main(int argc, char **argv)
 	fp = NULL;
 	logfile = LOGFILE;
 	rotate = 0;
-	dontfork = 0;
 
 	while ((i = getopt(argc, argv, "cdsl:p:rv")) != EOF) switch(i) {
 		case 'l':
@@ -423,9 +421,6 @@ int main(int argc, char **argv)
 			break;
 		case 'c':
 			createlogfile = 1;
-			break;
-		case 'd':
-			dontfork = 1;
 			break;
 		case 's':
 			syncalot = 1;
@@ -489,26 +484,6 @@ int main(int argc, char **argv)
 		fprintf(stderr, "bootlogd: ioctl(%s, TIOCCONS): %s\n",
 			buf, strerror(errno));
 		return 1;
-	}
-
-	/*
-	 *	Fork if needed.
-	 */
-	if (!dontfork) {
-		pid_t child_pid = fork();
-		switch (child_pid) {
-		case -1: /* I am parent and the attempt to create a child failed */
-			fprintf(stderr, "bootlogd: fork failed: %s\n",
-				strerror(errno));
-			exit(1);
-			break;
-		case 0: /* I am the child */
-			break;
-		default: /* I am parent and got child's pid */
-			exit(0);
-			break;
-		}
-		setsid();
 	}
 
 	/*

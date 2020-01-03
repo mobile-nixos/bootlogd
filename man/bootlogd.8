@@ -21,7 +21,6 @@ bootlogd \- record boot messages
 .SH SYNOPSIS
 .B /sbin/bootlogd
 .RB [ \-c ]
-.RB [ \-d ]
 .RB [ \-r ]
 .RB [ \-s ]
 .RB [ \-v ]
@@ -31,8 +30,6 @@ bootlogd \- record boot messages
 \fI/dev/console\fP device to a logfile. If the logfile is not accessible,
 the messages will be kept in memory until it is.
 .SH OPTIONS
-.IP \fB\-d\fP
-Do not fork and run in the background.
 .IP \fB\-c\fP
 Attempt to write to the logfile even if it does not yet exist.
 Without this option,
