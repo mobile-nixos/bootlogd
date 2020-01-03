@@ -440,9 +440,6 @@ int main(int argc, char **argv)
 	signal(SIGTTOU,  SIG_IGN);
 	signal(SIGTSTP,  SIG_IGN);
 
-	/*
-	 * Open console device directly.
-	 */
 	if ((num_consoles = consolenames(cons, MAX_CONSOLES)) <= 0)
 		return 1;
 	consoles_left = num_consoles;
