@@ -175,10 +175,12 @@ int isconsole(char *s, char *res, int rlen)
 			}
 			if ((fd = open(res, O_RDONLY|O_NONBLOCK)) >= 0) {
 				close(fd);
+
 				return 1;
 			}
 		}
 	}
+
 	return 0;
 }
 
@@ -202,11 +204,13 @@ int consolenames(struct real_cons *cons, int max_consoles)
 	stat("/", &st);
 	if (stat("/proc", &st2) < 0) {
 		perror("bootlogd: /proc");
+
 		return 0;
 	}
 	if (st.st_dev == st2.st_dev) {
 		if (mount("proc", "/proc", "proc", 0, NULL) < 0) {
 			perror("bootlogd: mount /proc");
+
 			return -1;
 		}
 		didmount = 1;
@@ -405,6 +409,7 @@ int write_err(int pts, int realfd, char *realcons, int e)
 werr:
 		close(pts);
 		fprintf(stderr, "bootlogd: writing to console: %s\n", strerror(e));
+
 		return -1;
 	}
 	close(realfd);
@@ -497,6 +502,7 @@ int main(int argc, char **argv)
 	buf[0] = 0;
 	if (findpty(&ptm, &pts, buf) < 0) {
 		fprintf(stderr, "bootlogd: cannot allocate pseudo tty: %s\n", strerror(errno));
+
 		return 1;
 	}
 
@@ -509,6 +515,7 @@ int main(int argc, char **argv)
 	if (ioctl(pts, TIOCCONS, NULL) < 0)
 	{
 		fprintf(stderr, "bootlogd: ioctl(%s, TIOCCONS): %s\n", buf, strerror(errno));
+
 		return 1;
 	}
 
