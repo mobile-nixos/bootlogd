@@ -223,15 +223,16 @@ int consolenames(struct real_cons *cons, int max_consoles)
 			continue;
 		}
 		if (strncmp(p, "console=", 8) == 0 &&
-			isconsole(p + 8, cons[num_consoles].name, sizeof(cons[num_consoles].name))) {
-				/*
-				 * Suppress duplicates
-				 */
-				for (considx = 0; considx < num_consoles; considx++) {
-					if (!strcmp(cons[num_consoles].name, cons[considx].name)) {
-						goto dontuse;
-					}
+				isconsole(p + 8, cons[num_consoles].name, sizeof(cons[num_consoles].name)))
+		{
+			/*
+			 * Suppress duplicates
+			 */
+			for (considx = 0; considx < num_consoles; considx++) {
+				if (!strcmp(cons[num_consoles].name, cons[considx].name)) {
+					goto dontuse;
 				}
+			}
 
 			num_consoles++;
 			if (num_consoles >= max_consoles) {
@@ -379,8 +380,7 @@ int write_err(int pts, int realfd, char *realcons, int e)
 	if (e != EIO) {
 werr:
 		close(pts);
-		fprintf(stderr, "bootlogd: writing to console: %s\n",
-			strerror(e));
+		fprintf(stderr, "bootlogd: writing to console: %s\n", strerror(e));
 		return -1;
 	}
 	close(realfd);
@@ -443,23 +443,23 @@ int main(int argc, char **argv)
 	/*
 	 * Open console device directly.
 	 */
-        if ((num_consoles = consolenames(cons, MAX_CONSOLES)) <= 0)
-                return 1;
-        consoles_left = num_consoles;
-        for (considx = 0; considx < num_consoles; considx++) {
-               if (strcmp(cons[considx].name, "/dev/tty0") == 0)
-                       strcpy(cons[considx].name, "/dev/tty1");
-               if (strcmp(cons[considx].name, "/dev/vc/0") == 0)
-                       strcpy(cons[considx].name, "/dev/vc/1");
+	if ((num_consoles = consolenames(cons, MAX_CONSOLES)) <= 0)
+		return 1;
+	consoles_left = num_consoles;
+	for (considx = 0; considx < num_consoles; considx++) {
+		if (strcmp(cons[considx].name, "/dev/tty0") == 0)
+			strcpy(cons[considx].name, "/dev/tty1");
+		if (strcmp(cons[considx].name, "/dev/vc/0") == 0)
+			strcpy(cons[considx].name, "/dev/vc/1");
 
-               if ((cons[considx].fd = open_nb(cons[considx].name)) < 0) {
-                       fprintf(stderr, "bootlogd: %s: %s\n",
-                                cons[considx].name, strerror(errno));
-                       consoles_left--;
-               }
-        }
-        if (!consoles_left)
-               return 1;
+		if ((cons[considx].fd = open_nb(cons[considx].name)) < 0) {
+			fprintf(stderr, "bootlogd: %s: %s\n",
+					cons[considx].name, strerror(errno));
+			consoles_left--;
+		}
+	}
+	if (!consoles_left)
+		return 1;
 
 
 	/*
@@ -469,9 +469,7 @@ int main(int argc, char **argv)
 	pts = -1;
 	buf[0] = 0;
 	if (findpty(&ptm, &pts, buf) < 0) {
-		fprintf(stderr,
-			"bootlogd: cannot allocate pseudo tty: %s\n",
-			strerror(errno));
+		fprintf(stderr, "bootlogd: cannot allocate pseudo tty: %s\n", strerror(errno));
 		return 1;
 	}
 
@@ -483,8 +481,7 @@ int main(int argc, char **argv)
 	}
 	if (ioctl(pts, TIOCCONS, NULL) < 0)
 	{
-		fprintf(stderr, "bootlogd: ioctl(%s, TIOCCONS): %s\n",
-			buf, strerror(errno));
+		fprintf(stderr, "bootlogd: ioctl(%s, TIOCCONS): %s\n", buf, strerror(errno));
 		return 1;
 	}
 
@@ -527,9 +524,7 @@ int main(int argc, char **argv)
 						 * Handle EIO (somebody hung
 						 * up our filedescriptor)
 						 */
-						cons[considx].fd = write_err(pts,
-							cons[considx].fd,
-							cons[considx].name, errno);
+						cons[considx].fd = write_err(pts, cons[considx].fd, cons[considx].name, errno);
 						if (cons[considx].fd >= 0) continue;
 						/*
 						 * If this was the last console,
@@ -537,7 +532,7 @@ int main(int argc, char **argv)
 						 */
 						if (--consoles_left <= 0) got_signal = 1;
 						break;
- 					}
+					}
 				}
 
 				/*
