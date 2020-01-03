@@ -72,16 +72,16 @@ struct real_cons {
  * the mapping to actual devices in /dev
  */
 struct consdev {
-	char	*cmdline;
-	char	*dev1;
-	char	*dev2;
+	char *cmdline;
+	char *dev1;
+	char *dev2;
 } consdev[] = {
-	{ "ttyB",	"/dev/ttyB%s",		NULL		},
-	{ "ttySC",	"/dev/ttySC%s",		"/dev/ttsc/%s"	},
-	{ "ttyS",	"/dev/ttyS%s",		"/dev/tts/%s"	},
-	{ "tty",	"/dev/tty%s",		"/dev/vc/%s"	},
-	{ "hvc",	"/dev/hvc%s",		"/dev/hvc/%s"	},
-	{ NULL,		NULL,			NULL		},
+	{ "ttyB",  "/dev/ttyB%s",  NULL  },
+	{ "ttySC", "/dev/ttySC%s", "/dev/ttsc/%s" },
+	{ "ttyS",  "/dev/ttyS%s",  "/dev/tts/%s" },
+	{ "tty",   "/dev/tty%s",   "/dev/vc/%s" },
+	{ "hvc",   "/dev/hvc%s",   "/dev/hvc/%s" },
+	{ NULL,    NULL,           NULL  },
 };
 
 /*
@@ -107,10 +107,10 @@ void handler(int sig)
  */
 int findpty(int *master, int *slave, char *name)
 {
-	char	pty[16];
-	char	tty[16];
-	int	i, j;
-	int	found;
+	char pty[16];
+	char tty[16];
+	int i, j;
+	int found;
 
 	if (openpty(master, slave, name, NULL, NULL) >= 0)
 		return 0;
@@ -144,9 +144,9 @@ int findpty(int *master, int *slave, char *name)
  */
 int isconsole(char *s, char *res, int rlen)
 {
-	struct consdev	*c;
-	int		l, sl, i, fd;
-	char		*p, *q;
+	struct consdev *c;
+	int l, sl, i, fd;
+	char *p, *q;
 
 	sl = strlen(s);
 
@@ -174,13 +174,13 @@ int isconsole(char *s, char *res, int rlen)
  */
 int consolenames(struct real_cons *cons, int max_consoles)
 {
-	struct stat	st, st2;
-	char		buf[KERNEL_COMMAND_LENGTH];
-	char		*p;
-	int		didmount = 0;
-	int		n;
-	int		fd;
-	int		considx, num_consoles = 0;
+	struct stat st, st2;
+	char buf[KERNEL_COMMAND_LENGTH];
+	char *p;
+	int didmount = 0;
+	int n;
+	int fd;
+	int considx, num_consoles = 0;
 
 	/*
 	 * Read /proc/cmdline.
@@ -357,7 +357,7 @@ void usage(void)
 
 int open_nb(char *buf)
 {
-	int	fd, n;
+	int fd, n;
 
 	if ((fd = open(buf, O_WRONLY|O_NONBLOCK|O_NOCTTY)) < 0)
 		return -1;
@@ -374,7 +374,7 @@ int open_nb(char *buf)
  */
 int write_err(int pts, int realfd, char *realcons, int e)
 {
-	int	fd;
+	int fd;
 
 	if (e != EIO) {
 werr:
@@ -392,19 +392,19 @@ werr:
 
 int main(int argc, char **argv)
 {
-	FILE		*fp;
-	struct timeval	tv;
-	fd_set		fds;
-	char		buf[1024];
-	char		*p;
-	char		*logfile;
-	int		rotate;
-	int		ptm, pts;
-	int		n, m, i;
-	int		todo;
-	int		considx;
+	FILE *fp;
+	struct timeval tv;
+	fd_set fds;
+	char buf[1024];
+	char *p;
+	char *logfile;
+	int rotate;
+	int ptm, pts;
+	int n, m, i;
+	int todo;
+	int considx;
 	struct real_cons cons[MAX_CONSOLES];
-	int		num_consoles, consoles_left;
+	int num_consoles, consoles_left;
 
 	fp = NULL;
 	logfile = LOGFILE;
