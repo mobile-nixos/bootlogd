@@ -41,9 +41,17 @@
 #define LOGFILE "/var/log/boot"
 
 #define MAX_CONSOLES 16
+
+/*
+ * The number of kernel parameters is not limited, but the length of the
+ * complete command line (parameters including spaces etc.) is limited to a
+ * fixed number of characters. This limit depends on the architecture and is
+ * between 256 and 4096 characters. It is defined in the file
+ * ./include/asm/setup.h as COMMAND_LINE_SIZE.
+ */
 #define KERNEL_COMMAND_LENGTH 4096
 
-char ringbuf[32768];
+char ringbuf[32768]; /* 32KiB */
 char *endptr = ringbuf + sizeof(ringbuf);
 char *inptr  = ringbuf;
 char *outptr = ringbuf;
