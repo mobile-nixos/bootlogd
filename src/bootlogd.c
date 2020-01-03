@@ -1,27 +1,28 @@
 /*
- * bootlogd.c	Store output from the console during bootup into a file.
- *		The file is usually located on the /var partition, and
- *		gets written (and fsynced) as soon as possible.
+ * bootlogd.c
+ *      Store output from the console during bootup into a file.
+ *      The file is usually located on the /var partition, and
+ *      gets written (and fsynced) as soon as possible.
  *
- * Bugs:	Uses openpty(), only available in glibc. Sorry.
+ * Bugs: Uses openpty(), only available in glibc. Sorry.
  *
- *		This file is part of the sysvinit suite,
- *		Copyright (C) 1991-2004 Miquel van Smoorenburg.
- *		Copyright (C) 2020 Samuel Dionne-Riel
+ *      This file is part of the sysvinit suite,
+ *      Copyright (C) 1991-2004 Miquel van Smoorenburg.
+ *      Copyright (C) 2020 Samuel Dionne-Riel
  *
- *		This program is free software; you can redistribute it and/or modify
- *		it under the terms of the GNU General Public License as published by
- *		the Free Software Foundation; either version 2 of the License, or
- *		(at your option) any later version.
+ *      This program is free software; you can redistribute it and/or modify
+ *      it under the terms of the GNU General Public License as published by
+ *      the Free Software Foundation; either version 2 of the License, or
+ *      (at your option) any later version.
  *
- *		This program is distributed in the hope that it will be useful,
- *		but WITHOUT ANY WARRANTY; without even the implied warranty of
- *		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *		GNU General Public License for more details.
+ *      This program is distributed in the hope that it will be useful,
+ *      but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *      GNU General Public License for more details.
  *
- *		You should have received a copy of the GNU General Public License
- *		along with this program; if not, write to the Free Software
- *		Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *      You should have received a copy of the GNU General Public License
+ *      along with this program; if not, write to the Free Software
+ *      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  *
  */
 
@@ -67,8 +68,8 @@ struct real_cons {
 };
 
 /*
- *	Console devices as listed on the kernel command line and
- *	the mapping to actual devices in /dev
+ * Console devices as listed on the kernel command line and
+ * the mapping to actual devices in /dev
  */
 struct consdev {
 	char	*cmdline;
@@ -84,13 +85,13 @@ struct consdev {
 };
 
 /*
- *	Devices to try as console if not found on kernel command line.
- *	Tried from left to right (as opposed to kernel cmdline).
+ * Devices to try as console if not found on kernel command line.
+ * Tried from left to right (as opposed to kernel cmdline).
  */
 char *defcons[] = { "tty0", "hvc0", "ttyS0", "ttySC0", "ttyB0", NULL };
 
 /*
- *	Catch signals.
+ * Catch signals.
  */
 void handler(int sig)
 {
@@ -98,11 +99,11 @@ void handler(int sig)
 }
 
 /*
- *	For some reason, openpty() in glibc sometimes doesn't
- *	work at boot-time. It must be a bug with old-style pty
- *	names, as new-style (/dev/pts) is not available at that
- *	point. So, we find a pty/tty pair ourself if openpty()
- *	fails for whatever reason.
+ * For some reason, openpty() in glibc sometimes doesn't
+ * work at boot-time. It must be a bug with old-style pty
+ * names, as new-style (/dev/pts) is not available at that
+ * point. So, we find a pty/tty pair ourself if openpty()
+ * fails for whatever reason.
  */
 int findpty(int *master, int *slave, char *name)
 {
@@ -138,8 +139,8 @@ int findpty(int *master, int *slave, char *name)
 	return 0;
 }
 /*
- *	See if a console taken from the kernel command line maps
- *	to a character device we know about, and if we can open it.
+ * See if a console taken from the kernel command line maps
+ * to a character device we know about, and if we can open it.
  */
 int isconsole(char *s, char *res, int rlen)
 {
@@ -168,8 +169,8 @@ int isconsole(char *s, char *res, int rlen)
 }
 
 /*
- *	Find out the _real_ console(s). Assume that stdin is connected to
- *	the console device (/dev/console).
+ * Find out the _real_ console(s). Assume that stdin is connected to
+ * the console device (/dev/console).
  */
 int consolenames(struct real_cons *cons, int max_consoles)
 {
@@ -182,7 +183,7 @@ int consolenames(struct real_cons *cons, int max_consoles)
 	int		considx, num_consoles = 0;
 
 	/*
-	 *	Read /proc/cmdline.
+	 * Read /proc/cmdline.
 	 */
 	stat("/", &st);
 	if (stat("/proc", &st2) < 0) {
@@ -207,12 +208,12 @@ int consolenames(struct real_cons *cons, int max_consoles)
 		close(fd);
 	}
 	if (didmount) umount("/proc");
-                
+
 	if (n < 0) return 0;
 
 	/*
-	 *	OK, so find console= in /proc/cmdline.
-	 *	Parse in reverse, opening as we go.
+	 * OK, so find console= in /proc/cmdline.
+	 * Parse in reverse, opening as we go.
 	 */
 	p = buf + n;
 	*p-- = 0;
@@ -224,14 +225,14 @@ int consolenames(struct real_cons *cons, int max_consoles)
 		if (strncmp(p, "console=", 8) == 0 &&
 			isconsole(p + 8, cons[num_consoles].name, sizeof(cons[num_consoles].name))) {
 				/*
-				 *	Suppress duplicates
+				 * Suppress duplicates
 				 */
 				for (considx = 0; considx < num_consoles; considx++) {
 					if (!strcmp(cons[num_consoles].name, cons[considx].name)) {
 						goto dontuse;
 					}
 				}
-			
+
 			num_consoles++;
 			if (num_consoles >= max_consoles) {
 				break;
@@ -244,11 +245,11 @@ dontuse:
 	if (num_consoles > 0) return num_consoles;
 
 	/*
-	 *	Okay, no console on the command line -
-	 *	guess the default console.
+	 * Okay, no console on the command line -
+	 * guess the default console.
 	 */
 	for (n = 0; defcons[n]; n++)
-		if (isconsole(defcons[n], cons[0].name, sizeof(cons[0].name))) 
+		if (isconsole(defcons[n], cons[0].name, sizeof(cons[0].name)))
 			return 1;
 
 	fprintf(stderr, "bootlogd: cannot deduce real console device\n");
@@ -258,7 +259,7 @@ dontuse:
 
 
 /*
- *	Write data and make sure it's on disk.
+ * Write data and make sure it's on disk.
  */
 void writelog(FILE *fp, unsigned char *ptr, int len)
 {
@@ -346,7 +347,7 @@ void writelog(FILE *fp, unsigned char *ptr, int len)
 
 
 /*
- *	Print usage message and exit.
+ * Print usage message and exit.
  */
 void usage(void)
 {
@@ -368,8 +369,8 @@ int open_nb(char *buf)
 }
 
 /*
- *	We got a write error on the real console. If its an EIO,
- *	somebody hung up our filedescriptor, so try to re-open it.
+ * We got a write error on the real console. If its an EIO,
+ * somebody hung up our filedescriptor, so try to re-open it.
  */
 int write_err(int pts, int realfd, char *realcons, int e)
 {
@@ -440,7 +441,7 @@ int main(int argc, char **argv)
 	signal(SIGTSTP,  SIG_IGN);
 
 	/*
-	 *	Open console device directly.
+	 * Open console device directly.
 	 */
         if ((num_consoles = consolenames(cons, MAX_CONSOLES)) <= 0)
                 return 1;
@@ -452,7 +453,7 @@ int main(int argc, char **argv)
                        strcpy(cons[considx].name, "/dev/vc/1");
 
                if ((cons[considx].fd = open_nb(cons[considx].name)) < 0) {
-                       fprintf(stderr, "bootlogd: %s: %s\n", 
+                       fprintf(stderr, "bootlogd: %s: %s\n",
                                 cons[considx].name, strerror(errno));
                        consoles_left--;
                }
@@ -462,7 +463,7 @@ int main(int argc, char **argv)
 
 
 	/*
-	 *	Grab a pty, and redirect console messages to it.
+	 * Grab a pty, and redirect console messages to it.
 	 */
 	ptm = -1;
 	pts = -1;
@@ -488,15 +489,15 @@ int main(int argc, char **argv)
 	}
 
 	/*
-	 *	Read the console messages from the pty, and write
-	 *	to the real console and the logfile.
+	 * Read the console messages from the pty, and write
+	 * to the real console and the logfile.
 	 */
 	while (!got_signal) {
 
 		/*
-		 *	We timeout after 5 seconds if we still need to
-		 *	open the logfile. There might be buffered messages
-		 *	we want to write.
+		 * We timeout after 5 seconds if we still need to
+		 * open the logfile. There might be buffered messages
+		 * we want to write.
 		 */
 		tv.tv_sec = 0;
 		tv.tv_usec = 500000;
@@ -504,12 +505,12 @@ int main(int argc, char **argv)
 		FD_SET(ptm, &fds);
 		if (select(ptm + 1, &fds, NULL, NULL, &tv) == 1) {
 			/*
-			 *	See how much space there is left, read.
+			 * See how much space there is left, read.
 			 */
 			if ((n = read(ptm, inptr, endptr - inptr)) >= 0) {
 				/*
-				 *	Write data (in chunks if needed)
-				 *	to the real output devices.
+				 * Write data (in chunks if needed)
+				 * to the real output devices.
 				 */
 				for (considx = 0; considx < num_consoles; considx++) {
 					if (cons[considx].fd < 0) continue;
@@ -523,16 +524,16 @@ int main(int argc, char **argv)
 							continue;
 						}
 						/*
-						 *	Handle EIO (somebody hung
-						 *	up our filedescriptor)
+						 * Handle EIO (somebody hung
+						 * up our filedescriptor)
 						 */
 						cons[considx].fd = write_err(pts,
 							cons[considx].fd,
 							cons[considx].name, errno);
 						if (cons[considx].fd >= 0) continue;
-						/*	
-						 *	If this was the last console,
-						 *	generate a fake signal
+						/*
+						 * If this was the last console,
+						 * generate a fake signal
 						 */
 						if (--consoles_left <= 0) got_signal = 1;
 						break;
@@ -540,9 +541,9 @@ int main(int argc, char **argv)
 				}
 
 				/*
-				 *	Increment buffer position. Handle
-				 *	wraps, and also drag output pointer
-				 *	along if we cross it.
+				 * Increment buffer position. Handle
+				 * wraps, and also drag output pointer
+				 * along if we cross it.
 				 */
 				inptr += n;
 				if (inptr - n < outptr && inptr > outptr)
@@ -555,7 +556,7 @@ int main(int argc, char **argv)
 		}
 
 		/*
-		 *	Perhaps we need to open the logfile.
+		 * Perhaps we need to open the logfile.
 		 */
 		if (fp == NULL && access(logfile, F_OK) == 0) {
 			if (rotate) {
