@@ -509,8 +509,7 @@ int main(int argc, char **argv)
 		(void)ioctl(n, TIOCCONS, NULL);
 		close(n);
 	}
-	if (ioctl(pts, TIOCCONS, NULL) < 0)
-	{
+	if (ioctl(pts, TIOCCONS, NULL) < 0) {
 		fprintf(stderr, "bootlogd: ioctl(%s, TIOCCONS): %s\n", buf, strerror(errno));
 
 		return 1;
