@@ -39,7 +39,7 @@
 #include <ctype.h>
 #include <sys/mount.h>
 
-#define LOGFILE "/var/log/boot"
+#define LOGFILE "/run/log/stage-1.log"
 
 #define MAX_CONSOLES 16
 
