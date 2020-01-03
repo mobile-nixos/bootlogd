@@ -25,11 +25,7 @@
  *
  */
 
-#include <sys/types.h>
-#include <sys/time.h>
 #include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <sys/utsname.h>
 #include <time.h>
 #include <stdio.h>
 #include <errno.h>
@@ -37,11 +33,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
-#include <getopt.h>
-#include <dirent.h>
 #include <fcntl.h>
 #include <pty.h>
-
 #include <ctype.h>
 #include <sys/mount.h>
 
