@@ -3,12 +3,11 @@
  *		The file is usually located on the /var partition, and
  *		gets written (and fsynced) as soon as possible.
  *
- * Version:	@(#)bootlogd  2.86pre  12-Jan-2004  miquels@cistron.nl
- *
  * Bugs:	Uses openpty(), only available in glibc. Sorry.
  *
  *		This file is part of the sysvinit suite,
  *		Copyright (C) 1991-2004 Miquel van Smoorenburg.
+ *		Copyright (C) 2020 Samuel Dionne-Riel
  *
  *		This program is free software; you can redistribute it and/or modify
  *		it under the terms of the GNU General Public License as published by
@@ -41,19 +40,10 @@
 #include <getopt.h>
 #include <dirent.h>
 #include <fcntl.h>
-#ifdef __linux__
 #include <pty.h>
-#endif
-
-#ifdef __FreeBSD__
-#include <termios.h>
-#include <libutil.h>
-#endif
 
 #include <ctype.h>
-#ifdef __linux__
 #include <sys/mount.h>
-#endif
 #include "bootlogd.h"
 
 #define MAX_CONSOLES 16
@@ -104,73 +94,6 @@ void handler(int sig)
 {
 	got_signal = sig;
 }
-
-
-/*
- *	Scan /dev and find the device name.
- */
-/*
-This function does not appear to be called anymore. Commenting it
-out for now, can probably be removed entirely in the future.
-
-static int findtty(char *res, const char *startdir, int rlen, dev_t dev)
-{
-	DIR		*dir;
-	struct dirent	*ent;
-	struct stat	st;
-	int		r = -1;
-	char *olddir = getcwd(NULL, 0);
-
-	if (chdir(startdir) < 0 || (dir = opendir(".")) == NULL) {
-		int msglen = strlen(startdir) + 11;
-		char *msg = malloc(msglen);
-		snprintf(msg, msglen, "bootlogd: %s", startdir);
-		perror(msg);
-		free(msg);
-		chdir(olddir);
-		return -1;
-	}
-	while ((ent = readdir(dir)) != NULL) {
-		if (lstat(ent->d_name, &st) != 0)
-			continue;
-		if (S_ISDIR(st.st_mode)
-		    && 0 != strcmp(".", ent->d_name)
-		    && 0 != strcmp("..", ent->d_name)) {
-			char *path = malloc(rlen);
-			snprintf(path, rlen, "%s/%s", startdir, ent->d_name);
-			r = findtty(res, path, rlen, dev);
-			free(path);
-			if (0 == r) { 
-				closedir(dir);
-				chdir(olddir);
-				return 0;
-			}
-			continue;
-		}
-		if (!S_ISCHR(st.st_mode))
-			continue;
-		if (st.st_rdev == dev) {
-			if ( (int) (strlen(ent->d_name) + strlen(startdir) + 1) >= rlen) {
-				fprintf(stderr, "bootlogd: console device name too long\n");
-				closedir(dir);
-				chdir(olddir);
-				return -1;
-			} else {
-				snprintf(res, rlen, "%s/%s", startdir, ent->d_name);
-				closedir(dir);
-				chdir(olddir);
-				return 0;
-			}
-		}
-	}
-	closedir(dir);
-
-	chdir(olddir);
-	return r;
-}
-*/
-
-
 
 /*
  *	For some reason, openpty() in glibc sometimes doesn't
@@ -248,9 +171,6 @@ int isconsole(char *s, char *res, int rlen)
  */
 int consolenames(struct real_cons *cons, int max_consoles)
 {
-#ifdef TIOCGDEV
-	/* This appears to be unused.  unsigned int	kdev; */
-#endif
 	struct stat	st, st2;
 	char		buf[KERNEL_COMMAND_LENGTH];
 	char		*p;
@@ -259,7 +179,6 @@ int consolenames(struct real_cons *cons, int max_consoles)
 	int		fd;
 	int		considx, num_consoles = 0;
 
-#ifdef __linux__
 	/*
 	 *	Read /proc/cmdline.
 	 */
@@ -321,7 +240,6 @@ dontuse:
 	}
 
 	if (num_consoles > 0) return num_consoles;
-#endif
 
 	/*
 	 *	Okay, no console on the command line -
@@ -484,9 +402,6 @@ int main(int argc, char **argv)
 	/* int		realfd;   -- this is now unused */
 	int		n, m, i;
 	int		todo;
-#ifndef __linux__	/* BSD-style ioctl needs an argument. */
-	int		on = 1;
-#endif
 	int		considx;
 	struct real_cons cons[MAX_CONSOLES];
 	int		num_consoles, consoles_left;
@@ -536,20 +451,6 @@ int main(int argc, char **argv)
 	/*
 	 *	Open console device directly.
 	 */
-        /*
-	if (consolename(realcons, sizeof(realcons)) < 0)
-		return 1;
-
-	if (strcmp(realcons, "/dev/tty0") == 0)
-		strcpy(realcons, "/dev/tty1");
-	if (strcmp(realcons, "/dev/vc/0") == 0)
-		strcpy(realcons, "/dev/vc/1");
-
-	if ((realfd = open_nb(realcons)) < 0) {
-		fprintf(stderr, "bootlogd: %s: %s\n", realcons, strerror(errno));
-		return 1;
-	}
-        */
         if ((num_consoles = consolenames(cons, MAX_CONSOLES)) <= 0)
                 return 1;
         consoles_left = num_consoles;
@@ -582,19 +483,13 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-#ifdef __linux__
 	(void)ioctl(0, TIOCCONS, NULL);
 	/* Work around bug in 2.1/2.2 kernels. Fixed in 2.2.13 and 2.3.18 */
 	if ((n = open("/dev/tty0", O_RDWR)) >= 0) {
 		(void)ioctl(n, TIOCCONS, NULL);
 		close(n);
 	}
-#endif
-#ifdef __linux__
 	if (ioctl(pts, TIOCCONS, NULL) < 0)
-#else	/* BSD usage of ioctl TIOCCONS. */
-	if (ioctl(pts, TIOCCONS, &on) < 0)
-#endif
 	{
 		fprintf(stderr, "bootlogd: ioctl(%s, TIOCCONS): %s\n",
 			buf, strerror(errno));
