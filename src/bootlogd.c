@@ -285,7 +285,6 @@ dontuse:
 	return 0;
 }
 
-
 /*
  * Write data and make sure it's on disk.
  */
@@ -353,7 +352,6 @@ void writelog(FILE *fp, unsigned char *ptr, int len)
 			}
 		}
 
-
 		if (!ignore) {
 			fwrite(ptr, sizeof(char), 1, fp);
 		}
@@ -372,7 +370,6 @@ void writelog(FILE *fp, unsigned char *ptr, int len)
 		outptr = ringbuf;
 	}
 }
-
 
 /*
  * Print usage message and exit.
@@ -524,7 +521,6 @@ int main(int argc, char **argv)
 	 * to the real console and the logfile.
 	 */
 	while (!got_signal) {
-
 		/*
 		 * We timeout after 5 seconds if we still need to
 		 * open the logfile. There might be buffered messages
