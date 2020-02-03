@@ -52,7 +52,7 @@
  */
 #define KERNEL_COMMAND_LENGTH 4096
 
-char ringbuf[32768]; /* 32KiB */
+char ringbuf[ 1 * 1024 * 1024 ]; /* MiB */
 char *endptr = ringbuf + sizeof(ringbuf);
 char *inptr  = ringbuf;
 char *outptr = ringbuf;
