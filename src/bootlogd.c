@@ -191,6 +191,9 @@ int isconsole(char *s, char *res, int rlen)
 /*
  * Find out the _real_ console(s). Assume that stdin is connected to
  * the console device (/dev/console).
+ *
+ * Also parses /proc/cmdline for usage as /init.
+ * Namely, for kmsg logging
  */
 int consolenames(struct real_cons *cons, int max_consoles)
 {
@@ -266,6 +269,14 @@ int consolenames(struct real_cons *cons, int max_consoles)
 			if (num_consoles >= max_consoles) {
 				break;
 			}
+		}
+
+		/*
+		 * Parse command-line for use as /init
+		 */
+
+		if (strncmp(p, "bootlogd.kmsg", 13) == 0) {
+			log_to_kmsg = 1;
 		}
 dontuse:
 		p--;
