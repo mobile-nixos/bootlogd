@@ -10,7 +10,7 @@
 
 # Version from sysvinit this was based on, 2.95.
 # And an additional monotonically increasing number.
-VERSION = "2.95.1"
+VERSION = "2.95.2"
 
 CPPFLAGS =
 CFLAGS  ?= -O2 -Werror
