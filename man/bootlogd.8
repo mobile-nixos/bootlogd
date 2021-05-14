@@ -56,6 +56,8 @@ Prepares the minimum required environment.
 /dev and /dev/pts will be mounted.
 .IP "\fB\-f\fP \fIcommand\fP"
 Forks bootlogd as a child process, and `execve` into command.
+.IP \fB\-k\fP
+Also logs to /dev/kmsg
 .SH NOTES
 bootlogd saves log data which includes control characters. The log is
 technically a text file, but not very easy for humans to read. To address
