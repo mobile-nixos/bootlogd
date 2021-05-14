@@ -476,6 +476,15 @@ int main(int argc, char **argv)
 		usage();
 	}
 
+	/*
+	 * When started as `/init`, we assume
+	 * bootlogd -p -f /init.2nd
+	 */
+	if (strcmp(argv[0], "/init") == 0) {
+		prepare_env = 1;
+		exec_into = "/init.2nd";
+	}
+
 	if (prepare_env) {
 		/* Mount /dev */
 		ret = mkdir("/dev", 0755);
