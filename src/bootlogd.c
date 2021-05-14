@@ -61,6 +61,7 @@ int got_signal = 0;
 int didnl = 1;
 int createlogfile = 0;
 int syncalot = 0;
+int prepare_env = 0;
 
 struct real_cons {
 	char name[1024];
@@ -380,7 +381,7 @@ void writelog(FILE *fp, unsigned char *ptr, int len)
  */
 void usage(void)
 {
-	fprintf(stderr, "Usage: bootlogd [-v] [-r] [-s] [-c] [-l logfile]\n");
+	fprintf(stderr, "Usage: bootlogd [-v] [-r] [-s] [-c] [-p] [-l logfile]\n");
 	exit(1);
 }
 
@@ -436,12 +437,13 @@ int main(int argc, char **argv)
 	int considx;
 	struct real_cons cons[MAX_CONSOLES];
 	int num_consoles, consoles_left;
+	int ret;
 
 	fp = NULL;
 	logfile = LOGFILE;
 	rotate = 0;
 
-	while ((i = getopt(argc, argv, "cdsl:p:rv")) != EOF) switch(i) {
+	while ((i = getopt(argc, argv, "cdsl:prv")) != EOF) switch(i) {
 		case 'l':
 			logfile = optarg;
 			break;
@@ -458,12 +460,39 @@ int main(int argc, char **argv)
 		case 's':
 			syncalot = 1;
 			break;
+		case 'p':
+			prepare_env = 1;
+			break;
 		default:
 			usage();
 			break;
 	}
 	if (optind < argc) {
 		usage();
+	}
+
+	if (prepare_env) {
+		/* Mount /dev */
+		ret = mkdir("/dev", 0755);
+		if (ret < 0 && errno != EEXIST) {
+			fprintf(stderr, "bootlogd: Failed to create /dev: %s\n", strerror(errno));
+			return 1;
+		}
+		if (mount("devtmpfs", "/dev", "devtmpfs", MS_NOEXEC | MS_NOSUID, NULL) < 0) {
+			fprintf(stderr, "bootlogd: Failed to mount /dev: %s\n", strerror(errno));
+			return 1;
+		}
+
+		/* Mount /dev/pts */
+		ret = mkdir("/dev/pts", 0755);
+		if (ret < 0 && errno != EEXIST) {
+			fprintf(stderr, "bootlogd: Failed to create /dev/pts: %s\n", strerror(errno));
+			return 1;
+		}
+		if (mount("devpts", "/dev/pts", "devpts", MS_NOEXEC | MS_NOSUID, NULL) < 0) {
+			fprintf(stderr, "bootlogd: Failed to mount /dev/pts: %s\n", strerror(errno));
+			return 1;
+		}
 	}
 
 	signal(SIGTERM, handler);
