@@ -61,6 +61,8 @@ int got_signal = 0;
 int didnl = 1;
 int createlogfile = 0;
 int syncalot = 0;
+int prepare_env = 0;
+char *exec_into = NULL;
 
 struct real_cons {
 	char name[1024];
@@ -380,7 +382,7 @@ void writelog(FILE *fp, unsigned char *ptr, int len)
  */
 void usage(void)
 {
-	fprintf(stderr, "Usage: bootlogd [-v] [-r] [-s] [-c] [-l logfile]\n");
+	fprintf(stderr, "Usage: bootlogd [-v] [-r] [-s] [-c] [-p] [-l logfile] [-f cmdline]\n");
 	exit(1);
 }
 
@@ -436,12 +438,14 @@ int main(int argc, char **argv)
 	int considx;
 	struct real_cons cons[MAX_CONSOLES];
 	int num_consoles, consoles_left;
+	int ret;
+	pid_t pid;
 
 	fp = NULL;
 	logfile = LOGFILE;
 	rotate = 0;
 
-	while ((i = getopt(argc, argv, "cdsl:p:rv")) != EOF) switch(i) {
+	while ((i = getopt(argc, argv, "cdsl:prvf:")) != EOF) switch(i) {
 		case 'l':
 			logfile = optarg;
 			break;
@@ -458,12 +462,51 @@ int main(int argc, char **argv)
 		case 's':
 			syncalot = 1;
 			break;
+		case 'p':
+			prepare_env = 1;
+			break;
+		case 'f':
+			exec_into = optarg;
+			break;
 		default:
 			usage();
 			break;
 	}
 	if (optind < argc) {
 		usage();
+	}
+
+	/*
+	 * When started as `/init`, we assume
+	 * bootlogd -p -f /init.2nd
+	 */
+	if (strcmp(argv[0], "/init") == 0) {
+		prepare_env = 1;
+		exec_into = "/init.2nd";
+	}
+
+	if (prepare_env) {
+		/* Mount /dev */
+		ret = mkdir("/dev", 0755);
+		if (ret < 0 && errno != EEXIST) {
+			fprintf(stderr, "bootlogd: Failed to create /dev: %s\n", strerror(errno));
+			return 1;
+		}
+		if (mount("devtmpfs", "/dev", "devtmpfs", MS_NOEXEC | MS_NOSUID, NULL) < 0) {
+			fprintf(stderr, "bootlogd: Failed to mount /dev: %s\n", strerror(errno));
+			return 1;
+		}
+
+		/* Mount /dev/pts */
+		ret = mkdir("/dev/pts", 0755);
+		if (ret < 0 && errno != EEXIST) {
+			fprintf(stderr, "bootlogd: Failed to create /dev/pts: %s\n", strerror(errno));
+			return 1;
+		}
+		if (mount("devpts", "/dev/pts", "devpts", MS_NOEXEC | MS_NOSUID, NULL) < 0) {
+			fprintf(stderr, "bootlogd: Failed to mount /dev/pts: %s\n", strerror(errno));
+			return 1;
+		}
 	}
 
 	signal(SIGTERM, handler);
@@ -517,6 +560,27 @@ int main(int argc, char **argv)
 		fprintf(stderr, "bootlogd: ioctl(%s, TIOCCONS): %s\n", buf, strerror(errno));
 
 		return 1;
+	}
+
+	/*
+	 * When we're execing into another process, do it right before we loop
+	 * through messages.
+	 */
+	if (exec_into != NULL) {
+		pid = fork();
+		if (pid < 0) {
+			fprintf(stderr, "bootlogd: Failed to fork: %s", strerror(errno));
+
+			return 1;
+		}
+
+		/* We're in the parent process (e.g. PID 1) */
+		if (pid > 0) {
+			execlp(exec_into, exec_into, NULL);
+			fprintf(stderr, "bootlogd: Failed to exec: %s", strerror(errno));
+
+			return 1;
+		}
 	}
 
 	/*

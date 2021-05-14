@@ -8,6 +8,10 @@
 # Version:	@(#)Makefile  2.85-13  23-Mar-2004  miquels@cistron.nl
 #
 
+# Version from sysvinit this was based on, 2.95.
+# And an additional monotonically increasing number.
+VERSION = "2.95.1"
+
 CPPFLAGS =
 CFLAGS  ?= -O2 -Werror
 override CFLAGS += -ansi -fomit-frame-pointer -fstack-protector-strong -W -Wall -Wunreachable-code -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -D_XOPEN_SOURCE -D_GNU_SOURCE -DVERSION=\"$(VERSION)\"

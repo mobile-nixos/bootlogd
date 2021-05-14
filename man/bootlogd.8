@@ -25,6 +25,8 @@ bootlogd \- record boot messages
 .RB [ \-s ]
 .RB [ \-v ]
 .RB [ " -l logfile " ]
+.RB [ \-p ]
+.RB [ " -f command " ]
 .SH DESCRIPTION
 \fBBootlogd\fP runs in the background and copies all strings sent to the
 \fI/dev/console\fP device to a logfile. If the logfile is not accessible,
@@ -49,6 +51,11 @@ process running in parallel.
 Show version.
 .IP "\fB\-l\fP \fIlogfile\fP"
 Log to this logfile. The default is \fI/run/log/stage-1.log\fP.
+.IP \fB\-p\fP
+Prepares the minimum required environment.
+/dev and /dev/pts will be mounted.
+.IP "\fB\-f\fP \fIcommand\fP"
+Forks bootlogd as a child process, and `execve` into command.
 .SH NOTES
 bootlogd saves log data which includes control characters. The log is
 technically a text file, but not very easy for humans to read. To address
