@@ -40,6 +40,7 @@
 #include <sys/mount.h>
 
 #define LOGFILE "/run/log/stage-1.log"
+#define DEV_KMSG "/dev/kmsg"
 
 #define MAX_CONSOLES 16
 
@@ -62,6 +63,7 @@ int didnl = 1;
 int createlogfile = 0;
 int syncalot = 0;
 int prepare_env = 0;
+int log_to_kmsg = 0;
 char *exec_into = NULL;
 
 struct real_cons {
@@ -189,6 +191,9 @@ int isconsole(char *s, char *res, int rlen)
 /*
  * Find out the _real_ console(s). Assume that stdin is connected to
  * the console device (/dev/console).
+ *
+ * Also parses /proc/cmdline for usage as /init.
+ * Namely, for kmsg logging
  */
 int consolenames(struct real_cons *cons, int max_consoles)
 {
@@ -264,6 +269,14 @@ int consolenames(struct real_cons *cons, int max_consoles)
 			if (num_consoles >= max_consoles) {
 				break;
 			}
+		}
+
+		/*
+		 * Parse command-line for use as /init
+		 */
+
+		if (strncmp(p, "bootlogd.kmsg", 13) == 0) {
+			log_to_kmsg = 1;
 		}
 dontuse:
 		p--;
@@ -382,7 +395,7 @@ void writelog(FILE *fp, unsigned char *ptr, int len)
  */
 void usage(void)
 {
-	fprintf(stderr, "Usage: bootlogd [-v] [-r] [-s] [-c] [-p] [-l logfile] [-f cmdline]\n");
+	fprintf(stderr, "Usage: bootlogd [-v] [-r] [-s] [-c] [-p] [-k] [-l logfile] [-f cmdline]\n");
 	exit(1);
 }
 
@@ -445,7 +458,7 @@ int main(int argc, char **argv)
 	logfile = LOGFILE;
 	rotate = 0;
 
-	while ((i = getopt(argc, argv, "cdsl:prvf:")) != EOF) switch(i) {
+	while ((i = getopt(argc, argv, "cdsl:prvf:k")) != EOF) switch(i) {
 		case 'l':
 			logfile = optarg;
 			break;
@@ -467,6 +480,9 @@ int main(int argc, char **argv)
 			break;
 		case 'f':
 			exec_into = optarg;
+			break;
+		case 'k':
+			log_to_kmsg = 1;
 			break;
 		default:
 			usage();
@@ -536,6 +552,23 @@ int main(int argc, char **argv)
 	}
 	if (!consoles_left) {
 		return 1;
+	}
+
+	if (log_to_kmsg) {
+		if (num_consoles < MAX_CONSOLES) {
+			/* Open one more "console", which really is /dev/kmsg */
+			num_consoles += 1;
+			considx = num_consoles-1;
+			strcpy(cons[considx].name, DEV_KMSG);
+			if ((cons[considx].fd = open_nb(cons[considx].name)) < 0) {
+				fprintf(stderr, "bootlogd: %s: %s\n",
+						cons[considx].name, strerror(errno));
+			}
+		}
+		else {
+			fprintf(stderr, "bootlogd: Couldn't open %s. We're out of consoles. Used %d out of %d!\n",
+					DEV_KMSG, num_consoles, MAX_CONSOLES);
+		}
 	}
 
 	/*
